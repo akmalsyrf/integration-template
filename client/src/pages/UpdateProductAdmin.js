@@ -8,6 +8,7 @@ import CheckBox from "../components/form/CheckBox";
 import dataProduct from "../fakeData/product";
 
 // Get API config here ...
+import { API } from "../config/api";
 
 export default function UpdateProductAdmin() {
   const title = "Product admin";
@@ -22,18 +23,57 @@ export default function UpdateProductAdmin() {
   const [product, setProduct] = useState({}); //Store product data
 
   // Create Variabel for store product data here ...
+  const [form, setForm] = useState({
+    image: "",
+    name: "",
+    desc: "",
+    price: "",
+    qty: "",
+  });
 
   // Create function get product data by id from database here ...
   // Create function get category data by id from database here ...
+  const getProduct = async (id) => {
+    try {
+      const response = await API.get(`/product/${id}`);
+      setPreview(response.data.data.image);
+      setForm({
+        ...form,
+        name: response.data.data.name,
+        desc: response.data.data.desc,
+        price: response.data.data.price,
+        qty: response.data.data.qty,
+      });
+      setProduct(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   // Call function get product with useEffect didMount here ...
   // Call function get category with useEffect didMount here ...
+  useEffect(() => {
+    getProduct(id);
+  }, []);
 
   // Create function for handle if category selected here ...
+  const handleChangeCategoryId = () => {};
 
   // Create function for handle change data on form here ...
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.type === "file" ? e.target.files : e.target.value,
+    });
+
+    if (e.target.type == "file") {
+      let url = URL.createObjectURL(e.target.files[0]);
+      setPreview(url);
+    }
+  };
 
   // Create function for handle submit data ...
+  const handleSubmit = () => {};
 
   // Get category id selected
   useEffect(() => {
@@ -66,64 +106,23 @@ export default function UpdateProductAdmin() {
                   />
                 </div>
               )}
-              <input
-                type="file"
-                id="upload"
-                name="image"
-                hidden
-                onChange={handleChange}
-              />
+              <input type="file" id="upload" name="image" hidden onChange={handleChange} />
               <label for="upload" className="label-file-add-product">
                 Upload file
               </label>
-              <input
-                type="text"
-                placeholder="Product Name"
-                name="name"
-                onChange={handleChange}
-                value={form.name}
-                className="input-edit-category mt-4"
-              />
-              <textarea
-                placeholder="Product Desc"
-                name="desc"
-                onChange={handleChange}
-                value={form.desc}
-                className="input-edit-category mt-4"
-                style={{ height: "130px" }}
-              ></textarea>
-              <input
-                type="number"
-                placeholder="Price (Rp.)"
-                name="price"
-                onChange={handleChange}
-                value={form.price}
-                className="input-edit-category mt-4"
-              />
-              <input
-                type="number"
-                placeholder="Stock"
-                name="qty"
-                onChange={handleChange}
-                value={form.qty}
-                className="input-edit-category mt-4"
-              />
+              <input type="text" placeholder="Product Name" name="name" onChange={handleChange} value={form.name} className="input-edit-category mt-4" />
+              <textarea placeholder="Product Desc" name="desc" onChange={handleChange} value={form.desc} className="input-edit-category mt-4" style={{ height: "130px" }}></textarea>
+              <input type="number" placeholder="Price (Rp.)" name="price" onChange={handleChange} value={form.price} className="input-edit-category mt-4" />
+              <input type="number" placeholder="Stock" name="qty" onChange={handleChange} value={form.qty} className="input-edit-category mt-4" />
 
               <div className="card-form-input mt-4 px-2 py-1 pb-2">
-                <div
-                  className="text-secondary mb-1"
-                  style={{ fontSize: "15px" }}
-                >
+                <div className="text-secondary mb-1" style={{ fontSize: "15px" }}>
                   Category
                 </div>
                 {product &&
                   categories.map((item) => (
                     <label class="checkbox-inline me-4">
-                      <CheckBox
-                        categoryId={categoryId}
-                        value={item.id}
-                        handleChangeCategoryId={handleChangeCategoryId}
-                      />
+                      <CheckBox categoryId={categoryId} value={item.id} handleChangeCategoryId={handleChangeCategoryId} />
                       <span className="ms-2">{item.name}</span>
                     </label>
                   ))}
