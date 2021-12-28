@@ -7,13 +7,15 @@ import NavbarAdmin from "../components/NavbarAdmin";
 import dataCategory from "../fakeData/category";
 
 // Get API config here ...
+import { API } from "../config/api";
 
 export default function AddCategoryAdmin() {
   console.clear();
 
   let history = useHistory();
-  
+
   // Store data with useState here ...
+  const [category, setCategory] = useState("");
 
   const title = "Category admin";
   document.title = "DumbMerch | " + title;
@@ -28,10 +30,18 @@ export default function AddCategoryAdmin() {
 
       // Create Configuration Content-type here ...
       // Content-type: application/json
+      const config = {
+        headers: {
+          "Content-type": "aplication/json",
+        },
+      };
 
       // Convert form data to string here ...
+      const body = JSON.stringify({ name: category });
 
       // Insert data category for login process here ...
+      const response = await API.post("/category", body, config);
+      console.log(response);
 
       history.push("/category-admin");
     } catch (error) {
@@ -49,13 +59,7 @@ export default function AddCategoryAdmin() {
           </Col>
           <Col xs="12">
             <form onSubmit={handleSubmit}>
-              <input
-                onChange={handleChange}
-                placeholder="category"
-                value={category}
-                name="category"
-                className="input-edit-category mt-4"
-              />
+              <input onChange={handleChange} placeholder="category" value={category} name="category" className="input-edit-category mt-4" />
               <div className="d-grid gap-2 mt-4">
                 <Button type="submit" variant="success" size="md">
                   Add
