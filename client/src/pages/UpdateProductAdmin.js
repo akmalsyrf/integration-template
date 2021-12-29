@@ -8,8 +8,10 @@ import CheckBox from "../components/form/CheckBox";
 import dataProduct from "../fakeData/product";
 
 // Import useQuery and useMutation here ...
+import { useQuery, useMutation } from "react-query";
 
 // Get API config here ...
+import { API } from "../config/api";
 
 export default function UpdateProductAdmin() {
   const title = "Product admin";
@@ -25,15 +27,99 @@ export default function UpdateProductAdmin() {
   const [product, setProduct] = useState({}); //Store product data
 
   // Create variabel for store data with useState here ...
+  const [form, setForm] = useState({
+    image: "",
+    name: "",
+    desc: "",
+    price: "",
+    qty: "",
+  });
 
   // Create process for handle fetching detail product data by id from database with useQuery here ...
   // Create process for handle fetching category data from database with useQuery here ...
+  let { productRefetch } = useQuery("productCache", async () => {
+    const config = {
+      method: "GET",
+      headers: {
+        Authorization: "Basic" + localStorage.token,
+      },
+    };
+
+    const response = await api.get("/product" + id, config);
+    setForm({
+      name: response.data.name,
+      desc: response.data.desc,
+      price: response.data.price,
+      qty: response.data.qty,
+      image: response.data.image,
+    });
+
+    setProduct(response.data);
+  });
 
   // Create function for handle if category selected here ...
+  let { categoriesRefetch } = useQuery("categoryCache", async () => {
+    const response = await api.get("/categories");
+    setCategories(response.data);
+  });
 
+  const handleChangeCategoryId = (e) => {
+    const id = e.target.value;
+    const checked = e.target.checked;
+
+    if (checked == true) {
+      // Save category id if checked
+      setCategoryId([...categoryId, parseInt(id)]);
+    } else {
+      // Delete category id from variable if unchecked
+      let newCategoryId = categoryId.filter((categoryIdItem) => {
+        return categoryIdItem != id;
+      });
+      setCategoryId(newCategoryId);
+    }
+  };
   // Create function for handle change data on form variabel here ...
+  // For handle if category selected
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.type === "file" ? e.target.files : e.target.value,
+    });
+  };
 
   // Create function for handle insert new product data with useMutation here ...
+  const handleSubmit = useMutation(async (e) => {
+    try {
+      e.preventDefault();
+
+      // Store data with FormData as object
+      const formData = new FormData();
+      if (preview) {
+        formData.set("image", preview[0], preview[0]?.name);
+      }
+      formData.set("name", form.name);
+      formData.set("desc", form.desc);
+      formData.set("price", form.price);
+      formData.set("qty", form.qty);
+      formData.set("categoryId", categoryId);
+
+      // Configuration
+      const config = {
+        method: "PATCH",
+        headers: {
+          Authorization: "Basic " + localStorage.token,
+        },
+        body: formData,
+      };
+
+      // Insert product data
+      const response = await api.patch("/product/" + product.id, config);
+
+      history.push("/product-admin");
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
   useEffect(() => {
     const newCategoryId = product?.categories?.map((item) => {
@@ -82,38 +168,10 @@ export default function UpdateProductAdmin() {
               <label for="upload" className="label-file-add-product">
                 Upload file
               </label>
-              <input
-                type="text"
-                placeholder="Product Name"
-                name="name"
-                onChange={handleChange}
-                value={form.name}
-                className="input-edit-category mt-4"
-              />
-              <textarea
-                placeholder="Product Desc"
-                name="desc"
-                onChange={handleChange}
-                value={form.desc}
-                className="input-edit-category mt-4"
-                style={{ height: "130px" }}
-              ></textarea>
-              <input
-                type="number"
-                placeholder="Price (Rp.)"
-                name="price"
-                onChange={handleChange}
-                value={form.price}
-                className="input-edit-category mt-4"
-              />
-              <input
-                type="number"
-                placeholder="Stock"
-                name="qty"
-                onChange={handleChange}
-                value={form.qty}
-                className="input-edit-category mt-4"
-              />
+              <input type="text" placeholder="Product Name" name="name" onChange={handleChange} value={form.name} className="input-edit-category mt-4" />
+              <textarea placeholder="Product Desc" name="desc" onChange={handleChange} value={form.desc} className="input-edit-category mt-4" style={{ height: "130px" }}></textarea>
+              <input type="number" placeholder="Price (Rp.)" name="price" onChange={handleChange} value={form.price} className="input-edit-category mt-4" />
+              <input type="number" placeholder="Stock" name="qty" onChange={handleChange} value={form.qty} className="input-edit-category mt-4" />
 
               <div className="card-form-input mt-4 px-2 py-1 pb-2">
                 <div className="text-secondary mb-1" style={{ fontSize: "15px" }}>
@@ -122,11 +180,7 @@ export default function UpdateProductAdmin() {
                 {product &&
                   categories.map((item, index) => (
                     <label key={index} className="checkbox-inline me-4">
-                      <CheckBox
-                        categoryId={categoryId}
-                        value={item.id}
-                        handleChangeCategoryId={handleChangeCategoryId}
-                      />
+                      <CheckBox categoryId={categoryId} value={item.id} handleChangeCategoryId={handleChangeCategoryId} />
                       <span className="ms-2">{item.name}</span>
                     </label>
                   ))}
