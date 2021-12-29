@@ -38,7 +38,7 @@ export default function AddCategoryAdmin() {
       const config = {
         method: "POST",
         headers: {
-          "Content-type": "application/json",
+          Authorization: "Basic " + localStorage.token,
         },
         body,
       };
@@ -65,13 +65,7 @@ export default function AddCategoryAdmin() {
           </Col>
           <Col xs="12">
             <form onSubmit={(e) => handleSubmit.mutate(e)}>
-              <input
-                onChange={handleChange}
-                placeholder="category"
-                value={category}
-                name="category"
-                className="input-edit-category mt-4"
-              />
+              <input onChange={handleChange} placeholder="category" value={category} name="category" className="input-edit-category mt-4" />
               <div className="d-grid gap-2 mt-4">
                 <Button type="submit" variant="success" size="md">
                   Add
